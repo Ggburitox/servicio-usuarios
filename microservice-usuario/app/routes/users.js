@@ -1,18 +1,36 @@
 const express = require('express');
 const router = express.Router();
-const { getUser, createUser } = require('../controllers/users');
+const { registerUser, loginUser, getUser } = require('../controllers/users');
 
 // Registrar usuario
-router.post('/', (req, res) => {
+router.post('/register', async (req, res) => {
     try {
-        const { email, nombre } = req.body;
-        if (!email || !nombre) {
-            return res.status(400).json({ error: 'Email y nombre son requeridos' });
+        const { username, email, password } = req.body;
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'Todos los campos son requeridos' });
         }
-        const newUser = createUser({ email, nombre });
+        const newUser = await registerUser({ username, email, password });
         res.status(201).json(newUser);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Login de usuario
+router.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email y contraseña son requeridos' });
+        }
+        const user = await loginUser(email, password);
+        res.json({ 
+            message: 'Login exitoso',
+            user,
+            token: 'fake-jwt-token-' + user.id // Simulación de token
+        });
+    } catch (error) {
+        res.status(401).json({ error: error.message });
     }
 });
 
@@ -25,4 +43,5 @@ router.get('/:userId', (req, res) => {
     res.json(user);
 });
 
+module.exports = router;
 module.exports = router;
